@@ -9,6 +9,7 @@ db = get_db()
 vans_routes_bp = Blueprint("vans_routes", __name__)
 CORS(vans_routes_bp)
 van_collection = db["vans"]
+user_collection = db["users"]
 
 
 # set up pre-existing data 
@@ -49,10 +50,11 @@ def van_by_id(van_id):
         print(e)
         return jsonify({"error":"error fetching van at id" + str(van_id)}), 500
 
-@vans_routes_bp.route('/api/host/vans')
-def vans_by_host():
+@vans_routes_bp.route('/api/host/<host_id>/vans')
+def vans_by_host(host_id):
+    print(host_id)
     try:
-        cursor  = van_collection.find({"hostId":"123"})
+        cursor  = van_collection.find({"hostId":host_id})
         vans_list = []
         for van in cursor:
             van['_id'] = str(van['_id'])
@@ -62,11 +64,11 @@ def vans_by_host():
         print(e)
         return jsonify({"error":"error fetching vans at hostid 123"}), 500
     
-@vans_routes_bp.route('/api/host/vans/<van_id>')
-def van_by_id_host(van_id):
+@vans_routes_bp.route('/api/host/<host_id>/vans/<van_id>')
+def van_by_id_host(host_id, van_id):
     try:
         van = van_collection.find_one({"id":van_id})
-        if van["hostId"]!= "123":
+        if van["hostId"]!= host_id:
             return jsonify({"error":"host does not have access to this van"}), 403
         if not van:
             return jsonify({"error":"van not found"}),404
