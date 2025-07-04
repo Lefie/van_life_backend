@@ -45,7 +45,7 @@ def register():
             return jsonify({"error":"username already exists"}), 409
         
         users_collection.insert_one(credential)
-        return jsonify({"msg":"new user added to the db"}), 201
+        return jsonify({"msg":"you are in!"}), 201
     
     except Exception as e:
         print(e)
