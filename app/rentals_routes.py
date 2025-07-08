@@ -19,6 +19,7 @@ def create_new_rental():
         user_id = data["user_id"]
         start_date = data['startDate']
         end_date = data['endDate']
+        van_id = data["van_id"]
         
         start_date_list = start_date.split("-")
         start_date_details = [int(d) for d in start_date_list]
@@ -29,13 +30,13 @@ def create_new_rental():
         end_date_obj = datetime(end_date_details[0],end_date_details[1],end_date_details[2])
 
         doc = {
-            "van_id":data["van_id"],
-            "user_id":ObjectId(user_id),
+            "van_id":van_id,
+            "user_id":user_id,
             "start_date":start_date_obj,
             "end_date":end_date_obj,
             "created_at":datetime.now(ZoneInfo("America/New_York"))
         }
-
+    
         rentals_collection.insert_one(doc)
 
         return jsonify({
@@ -62,3 +63,42 @@ def get_all_rentals():
     except Exception as e:
         print(e)
         return jsonify({"msg":"an error occured"}), 500
+
+# get upcoming rentals by user 
+@rental_routes_bp.route("/api/rentals/upcoming_rentals", methods=["GET","POST"])
+def get_upcoming_rentals():
+    try:
+        data = request.json
+        user_id = data["user_id"]
+        all_rentals_by_users = rentals_collection.find({"user_id":user_id,
+                                                        'start_date': {"$gte":  datetime.now()}})
+        
+        upcoming_rentals_list = []
+
+        for rental in all_rentals_by_users:
+            rental["_id"] = str(rental["_id"])
+            upcoming_rentals_list.append(rental)
+    
+        return jsonify({'success':'true',
+                        "upcoming_rentals_list":upcoming_rentals_list}), 200
+    except Exception as e:
+        print(e)
+        
+        return jsonify({"error":"an error occurred when retreiving upcoming rentals"}), 500
+
+@rental_routes_bp.route("/api/rentals/rental_history",methods=["GET","POST"])
+def get_rental_history():
+    try:
+        user_id = "68629911c1bb8142cb17a247" # get it from the post request 
+        rentals = rentals_collection.find({"user_id":user_id,
+                                 "end_date":{"$lte":datetime.now()}})
+        rental_history_list = []
+        for rental in rentals:
+            rental["_id"] = str(rental["_id"])
+            rental_history_list.append(rental)
+        
+        return jsonify({"success":"true",
+                        "rental history list":rental_history_list}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({"error":"an error occured retrieving rentals history"}), 500
