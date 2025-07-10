@@ -89,7 +89,8 @@ def get_upcoming_rentals():
 @rental_routes_bp.route("/api/rentals/rental_history",methods=["GET","POST"])
 def get_rental_history():
     try:
-        user_id = "68629911c1bb8142cb17a247" # get it from the post request 
+        data = request.json
+        user_id = data["user_id"]
         rentals = rentals_collection.find({"user_id":user_id,
                                  "end_date":{"$lte":datetime.now()}})
         rental_history_list = []

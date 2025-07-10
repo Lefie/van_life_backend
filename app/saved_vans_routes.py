@@ -37,16 +37,15 @@ def save_van(van_id):
 
 
 
-@saved_vans_routes_bp.route("/api/unsave/<van_id>", methods=["DELETE"])
-def unsave(van_id):
+@saved_vans_routes_bp.route("/api/unsave/<user_id>/<van_id>", methods=["DELETE"])
+def unsave(user_id,van_id):
     try:
-       data = request.get_json() #user_id
-       user_id = data["user_id"]
        # find one to make sure that it exists 
        doc = saved_vans_collections.find_one_and_delete({"user_id":user_id,"van_id":van_id})
+       doc["_id"] = str(doc["_id"])
     
-       return jsonify({"success":"true"},
-                      {"deleted_doc":doc}), 200
+       return jsonify({"success":"true",
+                       "deleted_doc":doc}), 200
 
     except Exception as e:
         print(e)
@@ -68,7 +67,7 @@ def get_saved_rentals():
         return jsonify({"error":"an error occured retrieving all saved vans"}), 500
 
 @saved_vans_routes_bp.route("/api/saved_vans/<user_id>", methods=["GET"])
-def get_saved_vans_by_username(user_id):
+def get_saved_vans_by_user_id(user_id):
     try:
         saved_vans = saved_vans_collections.find({"user_id":user_id})
         saved_vans_list = []
@@ -76,7 +75,10 @@ def get_saved_vans_by_username(user_id):
             van["_id"] = str(van["_id"])
             saved_vans_list.append(van)
 
-        return jsonify({"saved_vans":saved_vans_list}), 200
+        return jsonify({
+            "success":"true",
+            "saved_vans":saved_vans_list
+            }), 200
     except Exception as e:
         print(e)
         return jsonify({"error":"an error occurred getting vans by user"}), 500
