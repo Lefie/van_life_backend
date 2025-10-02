@@ -10,6 +10,11 @@ def create_app():
     app = Flask(__name__)
     CORS(app, resources={r"/*": {"origins": "*"}})
 
+    @app.route("/")
+    def index():
+        return "hello from flask"
+
+
     db = get_db()
     
     if db != None:

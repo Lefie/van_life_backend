@@ -15,6 +15,7 @@ users_collection = db["users"]
 def login():
     try:
         login_info = request.get_json()
+        print("login",login_info)
         foundUser = users_collection.find_one({"email":login_info["email"]})
         if not foundUser:
             return jsonify({"error":"user cannot be found"}), 404
@@ -31,7 +32,7 @@ def login():
             "loginSuccess":True}),200
     
     except Exception as e:
-        print(e)
+        print("error msg:",e)
         return jsonify({"error":"error logging in"}), 500
 
 
