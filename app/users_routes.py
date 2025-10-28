@@ -3,6 +3,8 @@ from flask_cors import CORS
 from .database import get_db
 from bson import ObjectId
 import uuid
+from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity,jwt_required,JWTManager
+
 
 db = get_db()
 
@@ -23,11 +25,15 @@ def login():
         if foundUser["password"] != login_info["password"]:
             return jsonify({"error":"user password incorrect"}), 401
 
+        foundUserId = str(foundUser["_id"])
         foundUser["_id"] = str(foundUser["_id"])
         logged_in_user = foundUser
         logged_in_user["password"] = None
-    
+        print(logged_in_user)
+        token = create_access_token(foundUserId)
+
         return jsonify({
+            "token":token,
             "user":logged_in_user,
             "loginSuccess":True}),200
     
@@ -40,7 +46,6 @@ def login():
 def register():
     try:
         credential = request.get_json()
-        
         usernameFound = users_collection.find_one({"name":credential["name"]})
         if usernameFound:
             return jsonify({"error":"username already exists"}), 409

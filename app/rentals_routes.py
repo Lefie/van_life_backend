@@ -5,6 +5,7 @@ from bson import ObjectId
 import uuid
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity,jwt_required,JWTManager
 
 db = get_db()
 
@@ -12,11 +13,13 @@ rental_routes_bp = Blueprint("rental_routes",__name__)
 CORS(rental_routes_bp)
 rentals_collection = db["rentals"]
 
-@rental_routes_bp.route("/api/rentals/create_new_rental", methods=["POST"])
+@rental_routes_bp.route("/api/rentals", methods=["POST"])
+@jwt_required()
 def create_new_rental():
+    user_id = get_jwt_identity()
+
     try:
         data = request.get_json()
-        user_id = data["user_id"]
         start_date = data['startDate']
         end_date = data['endDate']
         van_id = data["van_id"]
@@ -49,7 +52,7 @@ def create_new_rental():
 
 
 # get all rentals 
-@rental_routes_bp.route("/api/rentals/get_all_rentals", methods=["GET"])
+@rental_routes_bp.route("/api/rentals", methods=["GET"])
 def get_all_rentals():
     try:
         all_rentals_cursor = rentals_collection.find({})
@@ -65,11 +68,11 @@ def get_all_rentals():
         return jsonify({"msg":"an error occured"}), 500
 
 # get upcoming rentals by user 
-@rental_routes_bp.route("/api/rentals/upcoming_rentals", methods=["GET","POST"])
+@rental_routes_bp.route("/api/rentals/upcoming_rentals", methods=["GET"])
+@jwt_required()
 def get_upcoming_rentals():
+    user_id = get_jwt_identity()
     try:
-        data = request.json
-        user_id = data["user_id"]
         all_rentals_by_users = rentals_collection.find({"user_id":user_id,
                                                         'start_date': {"$gte":  datetime.now()}})
         
@@ -86,11 +89,11 @@ def get_upcoming_rentals():
         
         return jsonify({"error":"an error occurred when retreiving upcoming rentals"}), 500
 
-@rental_routes_bp.route("/api/rentals/rental_history",methods=["GET","POST"])
+@rental_routes_bp.route("/api/rentals/rental_history",methods=["GET"])
+@jwt_required()
 def get_rental_history():
+    user_id = get_jwt_identity()
     try:
-        data = request.json
-        user_id = data["user_id"]
         rentals = rentals_collection.find({"user_id":user_id,
                                  "end_date":{"$lte":datetime.now()}})
         rental_history_list = []
