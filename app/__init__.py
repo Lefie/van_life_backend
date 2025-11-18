@@ -7,6 +7,7 @@ from .vans_routes import vans_routes_bp
 from .users_routes import user_routes_bp
 from .saved_vans_routes import saved_vans_routes_bp
 from .rentals_routes import rental_routes_bp
+from .metrics_routes import metrics_routes_bp
 import os
 
 def create_app():
@@ -56,6 +57,7 @@ def create_app():
     app.register_blueprint(user_routes_bp)
     app.register_blueprint(saved_vans_routes_bp)
     app.register_blueprint(rental_routes_bp)
+    app.register_blueprint(metrics_routes_bp)
     
     return app
 

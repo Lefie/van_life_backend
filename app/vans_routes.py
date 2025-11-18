@@ -3,6 +3,7 @@ from flask import Blueprint,Flask, request, jsonify
 from flask_cors import CORS
 from .database import get_db
 from bson import ObjectId
+from datetime import datetime
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 db = get_db()
@@ -10,6 +11,7 @@ vans_routes_bp = Blueprint("vans_routes", __name__)
 CORS(vans_routes_bp)
 van_collection = db["vans"]
 user_collection = db["users"]
+views_collection = db["views"]
 
 
 
@@ -35,6 +37,11 @@ def van_by_id(van_id):
 
         if not van:
             return jsonify({"error":"van not found"}),404
+        
+        views_collection.insert_one({
+            "van_id":van_id,
+            "viewed_at": datetime.utcnow()
+        })
         
         van['_id'] = str(van['_id'])
         print(van)

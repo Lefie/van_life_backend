@@ -23,7 +23,18 @@ def save_van(van_id):
             "van_id":van_id,
             "user_id":loggedin_user_id,
             "saved_at":datetime.now(ZoneInfo("America/New_York"))
-        }
+        }       
+
+        existing_save = saved_vans_collections.find({"van_id":van_id, 
+                                                     "user_id":loggedin_user_id})
+    
+        results = len(list(existing_save))
+        
+        if results != 0:
+            return jsonify({
+                "success": "false",
+                "msg":"van already saved"}), 400
+
 
         saved_vans_collections.insert_one(doc)
 
