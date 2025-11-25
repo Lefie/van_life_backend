@@ -67,6 +67,50 @@ def get_vans_by_host():
         print(e)
         return jsonify({"error":"error fetching vans at hostid 123"}), 500
 
+@vans_routes_bp.route("/api/vans/hostlist")
+def get_host_list():
+    try:
+        hosts = user_collection.find({"isHost":True})
+        result = [{"name":item["name"], 
+          "_id": str(item["_id"])} 
+          for item in list(hosts)]
+        sorted_result = sorted(result, key=lambda resu:resu["name"])
+        print(sorted_result)
+        return jsonify({"msg":"success","result":sorted_result}),200
+    except Exception as e:
+        print(e)
+        return jsonify({"msg":"an error occurred getting host names"}), 500
+    
+@vans_routes_bp.route("/api/vans/all_hosts")
+def get_all_vans_by_hosts():
+    try:
+        pipeline = [{"$group":{"_id":"$hostId", 
+                            "van_count":{"$sum":1},
+                            "vans": {
+                                "$push": {
+                                        "_id":"$_id",
+                                        "name":"$name",
+                                        "price":"$price",
+                                        "type":"$type",
+                                        "description":"$description",
+                                        "imageUrl":"$imageUrl"
+                                    }}
+                            }}]
+        
+        result = list(van_collection.aggregate(pipeline))
+        for res in result:
+            res["_id"] = str(res["_id"])
+            for van in res["vans"]:
+                van["_id"] = str(van["_id"])
+        
+        return jsonify({"vanData":result,
+                        "msg":"success"}), 200
+    
+    except Exception as e:
+        print(e)
+        return jsonify({"msg":"something went wrong"}), 500
+
+
 # jwt required 
 @vans_routes_bp.route('/api/vans/<van_id>/host', methods = ["GET","PUT", "DELETE"])
 @jwt_required()

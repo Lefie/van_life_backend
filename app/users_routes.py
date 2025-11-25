@@ -12,6 +12,7 @@ db = get_db()
 user_routes_bp = Blueprint("users_routes", __name__)
 CORS(user_routes_bp)
 users_collection = db["users"]
+auth_log_collection = db["auth_logs"]
 
 
 @user_routes_bp.route('/api/users/login', methods=["POST"])
@@ -85,6 +86,18 @@ def register():
         })
         return jsonify({"error":"error registering a new user"}), 500
     
+@user_routes_bp.route("/api/users/<user_id>")
+def get_user_info(user_id):
+    try:
+        user = users_collection.find_one({"_id": ObjectId(user_id)})
+        user["_id"] = str(user["_id"])
+        return jsonify({"user":user,
+                        "msg":"success"}), 200
+    except Exception as e:
+        print(e)
+        return jsonify({"msg":"something went wrong"}), 500
+
+
 
 @user_routes_bp.route("/api/users/auth-stats", methods=["GET"])
 def auth_stats():
